@@ -2,7 +2,7 @@
 
 A take-home prototype for the **Execution Decision Layer**: given a proposed action and the conversation around it, decide whether to execute silently, execute and notify, confirm, clarify, or refuse.
 
-- **Live URL:** _add after deploy_
+- **Live URL:** https://alfred-hazel.vercel.app/
 - **Repo:** _add after push_
 
 The UI shows the full pipeline for any decision — inputs, computed signals, the exact prompt sent to the model, the raw model output, parse errors, and timings. There are six preloaded scenarios (easy, ambiguous, adversarial) and a dropdown to force each failure mode.
