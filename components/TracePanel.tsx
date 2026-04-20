@@ -6,7 +6,7 @@ import { Badge, CopyButton, JSONView, Section } from "./ui";
 export function TracePanel({ trace }: { trace: Trace | null }) {
   if (!trace) {
     return (
-      <div className="text-xs text-gray-500 p-4 border border-gray-200 rounded-lg bg-gray-50/50">
+      <div className="text-xs text-gray-500 dark:text-neutral-500 p-4 border border-gray-200 dark:border-neutral-800 rounded-lg bg-gray-50/50 dark:bg-neutral-900/50">
         Trace will appear here after a run.
       </div>
     );
@@ -14,7 +14,7 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
 
   return (
     <div className="space-y-2">
-      <div className="text-xs uppercase tracking-wider text-gray-500 font-medium mb-2">
+      <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-neutral-500 font-medium mb-2">
         Under the hood
       </div>
 
@@ -25,11 +25,15 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
       >
         <div className="space-y-3">
           <div>
-            <div className="text-xs text-gray-500 mb-1 font-medium">action</div>
+            <div className="text-xs text-gray-500 dark:text-neutral-500 mb-1 font-medium">
+              action
+            </div>
             <JSONView value={trace.action} />
           </div>
           <div>
-            <div className="text-xs text-gray-500 mb-1 font-medium">context</div>
+            <div className="text-xs text-gray-500 dark:text-neutral-500 mb-1 font-medium">
+              context
+            </div>
             <JSONView value={trace.context} />
           </div>
         </div>
@@ -43,8 +47,10 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
         <SignalsTable signals={trace.signals} />
         {trace.signals.notes.length > 0 && (
           <div className="mt-3">
-            <div className="text-xs text-gray-500 mb-1 font-medium">notes</div>
-            <ul className="list-disc list-inside text-xs text-gray-600 space-y-1">
+            <div className="text-xs text-gray-500 dark:text-neutral-500 mb-1 font-medium">
+              notes
+            </div>
+            <ul className="list-disc list-inside text-xs text-gray-600 dark:text-neutral-400 space-y-1">
               {trace.signals.notes.map((n, i) => (
                 <li key={i}>{n}</li>
               ))}
@@ -59,8 +65,8 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
           subtitle="LLM never called"
           defaultOpen={true}
         >
-          <div className="text-xs text-gray-700">
-            <span className="text-gray-900 font-medium">
+          <div className="text-xs text-gray-700 dark:text-neutral-300">
+            <span className="text-gray-900 dark:text-neutral-100 font-medium">
               {trace.shortCircuit.by}:
             </span>{" "}
             {trace.shortCircuit.reason}
@@ -79,12 +85,16 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
               label="copy both"
             />
           </div>
-          <div className="text-xs text-gray-500 mb-1 font-medium">system</div>
-          <pre className="text-xs bg-gray-50 border border-gray-200 rounded-md p-3 overflow-auto max-h-64 whitespace-pre-wrap break-words text-gray-800">
+          <div className="text-xs text-gray-500 dark:text-neutral-500 mb-1 font-medium">
+            system
+          </div>
+          <pre className="text-xs bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-md p-3 overflow-auto max-h-64 whitespace-pre-wrap break-words text-gray-800 dark:text-neutral-200">
             {trace.prompt.system}
           </pre>
-          <div className="text-xs text-gray-500 mb-1 mt-3 font-medium">user</div>
-          <pre className="text-xs bg-gray-50 border border-gray-200 rounded-md p-3 overflow-auto max-h-96 whitespace-pre-wrap break-words text-gray-800">
+          <div className="text-xs text-gray-500 dark:text-neutral-500 mb-1 mt-3 font-medium">
+            user
+          </div>
+          <pre className="text-xs bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-md p-3 overflow-auto max-h-96 whitespace-pre-wrap break-words text-gray-800 dark:text-neutral-200">
             {trace.prompt.user}
           </pre>
         </Section>
@@ -103,11 +113,11 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
               : ""
           }`}
         >
-          <div className="text-xs text-gray-500 mb-1 font-medium">
+          <div className="text-xs text-gray-500 dark:text-neutral-500 mb-1 font-medium">
             parsed output
           </div>
           <JSONView value={trace.raw.toolInput} />
-          <div className="text-xs text-gray-500 mb-1 mt-3 font-medium">
+          <div className="text-xs text-gray-500 dark:text-neutral-500 mb-1 mt-3 font-medium">
             full response
           </div>
           <JSONView value={trace.raw.raw} />
@@ -120,7 +130,7 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
           subtitle={trace.retried ? "retried once" : "no retry"}
           defaultOpen={true}
         >
-          <div className="text-xs text-gray-700">
+          <div className="text-xs text-gray-700 dark:text-neutral-300">
             {trace.parseError ?? "no error recorded"}
           </div>
         </Section>
@@ -135,7 +145,7 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
         subtitle={`${trace.timings.totalMs}ms total`}
         defaultOpen={false}
       >
-        <div className="text-xs text-gray-600 space-y-1">
+        <div className="text-xs text-gray-600 dark:text-neutral-400 space-y-1">
           <div>signals: {trace.timings.signalsMs}ms</div>
           {typeof trace.timings.llmMs === "number" && (
             <div>llm: {trace.timings.llmMs}ms</div>
@@ -144,7 +154,7 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
         </div>
       </Section>
 
-      <div className="text-xs text-gray-500 mt-3 flex gap-2 flex-wrap">
+      <div className="text-xs text-gray-500 dark:text-neutral-500 mt-3 flex gap-2 flex-wrap">
         {trace.mock && <Badge tone="indigo">mock: true</Badge>}
         <Badge tone="gray">forcedFailure: {trace.forcedFailure}</Badge>
       </div>
@@ -183,7 +193,7 @@ function SignalsTable({ signals }: { signals: ComputedSignals }) {
       signals.entityAmbiguity.length ? (
         signals.entityAmbiguity.join(", ")
       ) : (
-        <span className="text-gray-400">none</span>
+        <span className="text-gray-400 dark:text-neutral-600">none</span>
       ),
     ],
     [
@@ -191,7 +201,7 @@ function SignalsTable({ signals }: { signals: ComputedSignals }) {
       signals.missingCriticalParams.length ? (
         signals.missingCriticalParams.join(", ")
       ) : (
-        <span className="text-gray-400">none</span>
+        <span className="text-gray-400 dark:text-neutral-600">none</span>
       ),
     ],
     [
@@ -199,7 +209,7 @@ function SignalsTable({ signals }: { signals: ComputedSignals }) {
       signals.policyViolation ? (
         <Badge tone="red">{signals.policyViolation}</Badge>
       ) : (
-        <span className="text-gray-400">none</span>
+        <span className="text-gray-400 dark:text-neutral-600">none</span>
       ),
     ],
     ["staleness", signals.staleness],
@@ -209,11 +219,14 @@ function SignalsTable({ signals }: { signals: ComputedSignals }) {
     <table className="w-full text-xs">
       <tbody>
         {rows.map(([k, v]) => (
-          <tr key={k} className="border-b border-gray-100 last:border-0">
-            <td className="py-2 pr-3 text-gray-500 font-mono whitespace-nowrap align-top">
+          <tr
+            key={k}
+            className="border-b border-gray-100 dark:border-neutral-900 last:border-0"
+          >
+            <td className="py-2 pr-3 text-gray-500 dark:text-neutral-500 font-mono whitespace-nowrap align-top">
               {k}
             </td>
-            <td className="py-2 text-gray-800">{v}</td>
+            <td className="py-2 text-gray-800 dark:text-neutral-200">{v}</td>
           </tr>
         ))}
       </tbody>

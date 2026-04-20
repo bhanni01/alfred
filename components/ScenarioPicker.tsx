@@ -14,7 +14,7 @@ export function ScenarioPicker({
 }) {
   return (
     <div className="space-y-3">
-      <div className="text-xs uppercase tracking-wider text-gray-500 font-medium">
+      <div className="text-xs uppercase tracking-wider text-gray-500 dark:text-neutral-500 font-medium">
         Scenarios
       </div>
       {scenarios.map((s) => {
@@ -25,17 +25,17 @@ export function ScenarioPicker({
             onClick={() => onSelect(s.id)}
             className={`w-full text-left p-4 rounded-lg border transition-all ${
               selected
-                ? "border-blue-600 bg-blue-50/40 shadow-sm"
-                : "border-gray-200 hover:border-gray-300 bg-white hover:shadow-sm"
+                ? "border-blue-600 bg-blue-50/40 shadow-sm dark:border-blue-500 dark:bg-blue-950/20"
+                : "border-gray-200 hover:border-gray-300 bg-white hover:shadow-sm dark:border-neutral-800 dark:hover:border-neutral-700 dark:bg-neutral-950"
             }`}
           >
             <div className="flex items-start justify-between gap-2">
-              <div className="font-medium text-sm text-gray-900">
+              <div className="font-medium text-sm text-gray-900 dark:text-neutral-100">
                 {s.label}
               </div>
               <Badge tone={diffTone(s.difficulty)}>{s.difficulty}</Badge>
             </div>
-            <div className="text-xs text-gray-600 mt-1.5 leading-relaxed">
+            <div className="text-xs text-gray-600 dark:text-neutral-400 mt-1.5 leading-relaxed">
               {s.blurb}
             </div>
             <div className="mt-2.5">

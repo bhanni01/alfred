@@ -32,13 +32,13 @@ export function ForceFailure({
   const current = OPTIONS.find((o) => o.value === value) ?? OPTIONS[0];
   return (
     <div className="flex items-center gap-2">
-      <label className="text-xs text-gray-500 uppercase tracking-wider font-medium">
+      <label className="text-xs text-gray-500 dark:text-neutral-500 uppercase tracking-wider font-medium">
         Force
       </label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as ForcedFailure)}
-        className="bg-white border border-gray-300 rounded-md px-2 py-1 text-xs text-gray-800 hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        className="bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-md px-2 py-1 text-xs text-gray-800 dark:text-neutral-200 hover:border-gray-400 dark:hover:border-neutral-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
       >
         {OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>
@@ -46,7 +46,7 @@ export function ForceFailure({
           </option>
         ))}
       </select>
-      <span className="text-xs text-gray-500 hidden md:inline">
+      <span className="text-xs text-gray-500 dark:text-neutral-500 hidden md:inline">
         {current.note}
       </span>
     </div>
