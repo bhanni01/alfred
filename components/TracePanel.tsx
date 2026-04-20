@@ -6,7 +6,7 @@ import { Badge, CopyButton, JSONView, Section } from "./ui";
 export function TracePanel({ trace }: { trace: Trace | null }) {
   if (!trace) {
     return (
-      <div className="text-xs text-neutral-500 p-3 border border-neutral-800 rounded bg-neutral-950/40">
+      <div className="text-xs text-gray-500 p-4 border border-gray-200 rounded-lg bg-gray-50/50">
         Trace will appear here after a run.
       </div>
     );
@@ -14,7 +14,7 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
 
   return (
     <div className="space-y-2">
-      <div className="text-xs uppercase tracking-wider text-neutral-500 mb-1">
+      <div className="text-xs uppercase tracking-wider text-gray-500 font-medium mb-2">
         Under the hood
       </div>
 
@@ -25,11 +25,11 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
       >
         <div className="space-y-3">
           <div>
-            <div className="text-xs text-neutral-500 mb-1">action</div>
+            <div className="text-xs text-gray-500 mb-1 font-medium">action</div>
             <JSONView value={trace.action} />
           </div>
           <div>
-            <div className="text-xs text-neutral-500 mb-1">context</div>
+            <div className="text-xs text-gray-500 mb-1 font-medium">context</div>
             <JSONView value={trace.context} />
           </div>
         </div>
@@ -43,8 +43,8 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
         <SignalsTable signals={trace.signals} />
         {trace.signals.notes.length > 0 && (
           <div className="mt-3">
-            <div className="text-xs text-neutral-500 mb-1">notes</div>
-            <ul className="list-disc list-inside text-xs text-neutral-400 space-y-1">
+            <div className="text-xs text-gray-500 mb-1 font-medium">notes</div>
+            <ul className="list-disc list-inside text-xs text-gray-600 space-y-1">
               {trace.signals.notes.map((n, i) => (
                 <li key={i}>{n}</li>
               ))}
@@ -59,8 +59,8 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
           subtitle="LLM never called"
           defaultOpen={true}
         >
-          <div className="text-xs text-neutral-400">
-            <span className="text-neutral-200 font-medium">
+          <div className="text-xs text-gray-700">
+            <span className="text-gray-900 font-medium">
               {trace.shortCircuit.by}:
             </span>{" "}
             {trace.shortCircuit.reason}
@@ -79,12 +79,12 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
               label="copy both"
             />
           </div>
-          <div className="text-xs text-neutral-500 mb-1">system</div>
-          <pre className="text-xs bg-neutral-950 border border-neutral-800 rounded p-3 overflow-auto max-h-64 whitespace-pre-wrap break-words">
+          <div className="text-xs text-gray-500 mb-1 font-medium">system</div>
+          <pre className="text-xs bg-gray-50 border border-gray-200 rounded-md p-3 overflow-auto max-h-64 whitespace-pre-wrap break-words text-gray-800">
             {trace.prompt.system}
           </pre>
-          <div className="text-xs text-neutral-500 mb-1 mt-3">user</div>
-          <pre className="text-xs bg-neutral-950 border border-neutral-800 rounded p-3 overflow-auto max-h-96 whitespace-pre-wrap break-words">
+          <div className="text-xs text-gray-500 mb-1 mt-3 font-medium">user</div>
+          <pre className="text-xs bg-gray-50 border border-gray-200 rounded-md p-3 overflow-auto max-h-96 whitespace-pre-wrap break-words text-gray-800">
             {trace.prompt.user}
           </pre>
         </Section>
@@ -97,15 +97,19 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
             trace.raw.usage
               ? ` · in ${trace.raw.usage.input_tokens}t · out ${trace.raw.usage.output_tokens}t${
                   trace.raw.usage.cache_read_input_tokens
-                    ? ` · cache_read ${trace.raw.usage.cache_read_input_tokens}t`
+                    ? ` · cached ${trace.raw.usage.cache_read_input_tokens}t`
                     : ""
                 }`
               : ""
           }`}
         >
-          <div className="text-xs text-neutral-500 mb-1">toolInput</div>
+          <div className="text-xs text-gray-500 mb-1 font-medium">
+            parsed output
+          </div>
           <JSONView value={trace.raw.toolInput} />
-          <div className="text-xs text-neutral-500 mb-1 mt-3">full response</div>
+          <div className="text-xs text-gray-500 mb-1 mt-3 font-medium">
+            full response
+          </div>
           <JSONView value={trace.raw.raw} />
         </Section>
       )}
@@ -116,7 +120,7 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
           subtitle={trace.retried ? "retried once" : "no retry"}
           defaultOpen={true}
         >
-          <div className="text-xs text-neutral-300">
+          <div className="text-xs text-gray-700">
             {trace.parseError ?? "no error recorded"}
           </div>
         </Section>
@@ -131,7 +135,7 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
         subtitle={`${trace.timings.totalMs}ms total`}
         defaultOpen={false}
       >
-        <div className="text-xs text-neutral-400 space-y-1">
+        <div className="text-xs text-gray-600 space-y-1">
           <div>signals: {trace.timings.signalsMs}ms</div>
           {typeof trace.timings.llmMs === "number" && (
             <div>llm: {trace.timings.llmMs}ms</div>
@@ -140,11 +144,9 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
         </div>
       </Section>
 
-      <div className="text-xs text-neutral-500 mt-2 flex gap-2 flex-wrap">
+      <div className="text-xs text-gray-500 mt-3 flex gap-2 flex-wrap">
         {trace.mock && <Badge tone="indigo">mock: true</Badge>}
-        <Badge tone="gray">
-          forcedFailure: {trace.forcedFailure}
-        </Badge>
+        <Badge tone="gray">forcedFailure: {trace.forcedFailure}</Badge>
       </div>
     </div>
   );
@@ -152,7 +154,10 @@ export function TracePanel({ trace }: { trace: Trace | null }) {
 
 function SignalsTable({ signals }: { signals: ComputedSignals }) {
   const rows: Array<[string, React.ReactNode]> = [
-    ["riskTier", <Badge tone={riskTone(signals.riskTier)}>{signals.riskTier}</Badge>],
+    [
+      "riskTier",
+      <Badge tone={riskTone(signals.riskTier)}>{signals.riskTier}</Badge>,
+    ],
     ["reversibility", signals.reversibility],
     ["externalVisibility", signals.externalVisibility],
     [
@@ -175,22 +180,26 @@ function SignalsTable({ signals }: { signals: ComputedSignals }) {
     ],
     [
       "entityAmbiguity",
-      signals.entityAmbiguity.length
-        ? signals.entityAmbiguity.join(", ")
-        : <span className="text-neutral-500">none</span>,
+      signals.entityAmbiguity.length ? (
+        signals.entityAmbiguity.join(", ")
+      ) : (
+        <span className="text-gray-400">none</span>
+      ),
     ],
     [
       "missingCriticalParams",
-      signals.missingCriticalParams.length
-        ? signals.missingCriticalParams.join(", ")
-        : <span className="text-neutral-500">none</span>,
+      signals.missingCriticalParams.length ? (
+        signals.missingCriticalParams.join(", ")
+      ) : (
+        <span className="text-gray-400">none</span>
+      ),
     ],
     [
       "policyViolation",
       signals.policyViolation ? (
         <Badge tone="red">{signals.policyViolation}</Badge>
       ) : (
-        <span className="text-neutral-500">none</span>
+        <span className="text-gray-400">none</span>
       ),
     ],
     ["staleness", signals.staleness],
@@ -200,11 +209,11 @@ function SignalsTable({ signals }: { signals: ComputedSignals }) {
     <table className="w-full text-xs">
       <tbody>
         {rows.map(([k, v]) => (
-          <tr key={k} className="border-b border-neutral-900 last:border-0">
-            <td className="py-1.5 pr-3 text-neutral-500 font-mono whitespace-nowrap align-top">
+          <tr key={k} className="border-b border-gray-100 last:border-0">
+            <td className="py-2 pr-3 text-gray-500 font-mono whitespace-nowrap align-top">
               {k}
             </td>
-            <td className="py-1.5 text-neutral-200">{v}</td>
+            <td className="py-2 text-gray-800">{v}</td>
           </tr>
         ))}
       </tbody>

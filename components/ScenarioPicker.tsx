@@ -13,8 +13,8 @@ export function ScenarioPicker({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="space-y-2">
-      <div className="text-xs uppercase tracking-wider text-neutral-500 mb-1">
+    <div className="space-y-3">
+      <div className="text-xs uppercase tracking-wider text-gray-500 font-medium">
         Scenarios
       </div>
       {scenarios.map((s) => {
@@ -23,22 +23,22 @@ export function ScenarioPicker({
           <button
             key={s.id}
             onClick={() => onSelect(s.id)}
-            className={`w-full text-left p-3 rounded border transition-colors ${
+            className={`w-full text-left p-4 rounded-lg border transition-all ${
               selected
-                ? "border-indigo-600 bg-indigo-950/40"
-                : "border-neutral-800 hover:border-neutral-700 bg-neutral-950/60"
+                ? "border-blue-600 bg-blue-50/40 shadow-sm"
+                : "border-gray-200 hover:border-gray-300 bg-white hover:shadow-sm"
             }`}
           >
             <div className="flex items-start justify-between gap-2">
-              <div className="font-medium text-sm text-neutral-100">
+              <div className="font-medium text-sm text-gray-900">
                 {s.label}
               </div>
               <Badge tone={diffTone(s.difficulty)}>{s.difficulty}</Badge>
             </div>
-            <div className="text-xs text-neutral-400 mt-1 leading-relaxed">
+            <div className="text-xs text-gray-600 mt-1.5 leading-relaxed">
               {s.blurb}
             </div>
-            <div className="mt-2">
+            <div className="mt-2.5">
               <Badge tone="gray">expected: {s.expectedVerdict}</Badge>
             </div>
           </button>
