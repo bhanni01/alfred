@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import type {
   Action,
   ComputedSignals,
@@ -23,14 +23,10 @@ export interface CallLlmResult {
   toolInput: unknown; // unvalidated — pipeline zod-parses
 }
 
-function haveRealKey(): boolean {
-  return !!process.env.ANTHROPIC_API_KEY && !process.env.FORCE_MOCK;
-}
-
 export function shouldUseMock(requestedMock?: boolean): boolean {
   if (requestedMock === true) return true;
   if (process.env.FORCE_MOCK === "1") return true;
-  if (!process.env.ANTHROPIC_API_KEY) return true;
+  if (!process.env.OPENAI_API_KEY) return true;
   return false;
 }
 
@@ -52,21 +48,24 @@ export async function callLlm(
   }
 
   if (opts.forcedFailure === "timeout") {
-    // Don't actually call the API — just race against the timer.
+    // Don't actually call the API — just race against an immediate-reject timer.
     await withTimeout(new Promise<never>(() => {}), 1);
-    // unreachable
-    throw new Error("LLM_TIMEOUT");
+    throw new Error("LLM_TIMEOUT"); // unreachable
   }
 
   if (opts.forcedFailure === "malformed") {
-    // Don't burn tokens just to demo malformed-parse. Return a malformed
+    // Don't burn tokens just to demo malformed-parse. Return an unparseable
     // shape directly so the pipeline exercises the retry + fallback path.
     const t0 = Date.now();
     return {
       raw: {
-        raw: { content: [{ type: "tool_use", name: "emit_decision", input: { verdict: "MAYBE" } }] },
+        raw: {
+          choices: [
+            { message: { content: '{"verdict":"MAYBE"}', role: "assistant" } },
+          ],
+        },
         toolInput: { verdict: "MAYBE" },
-        stopReason: "tool_use",
+        stopReason: "stop",
         usage: { input_tokens: 420, output_tokens: 12 },
         latencyMs: Date.now() - t0 + 120,
       },
@@ -74,54 +73,62 @@ export async function callLlm(
     };
   }
 
-  const client = new Anthropic();
+  const client = new OpenAI();
   const t0 = Date.now();
 
-  const userMessages = [{ role: "user" as const, content: prompt.user }];
+  const messages: OpenAI.ChatCompletionMessageParam[] = [
+    { role: "system", content: prompt.system },
+    { role: "user", content: prompt.user },
+  ];
   if (opts.retryCorrection) {
-    userMessages.push({
-      role: "user" as const,
-      content: opts.retryCorrection,
-    });
+    messages.push({ role: "user", content: opts.retryCorrection });
   }
 
-  const call = client.messages.create({
+  const call = client.chat.completions.create({
     model: prompt.model,
     max_tokens: prompt.maxTokens,
-    // System as an array of blocks so we can attach cache_control.
-    system: [
-      {
-        type: "text",
-        text: prompt.system,
-        cache_control: { type: "ephemeral" },
+    temperature: 0.2,
+    messages,
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: DECISION_TOOL.name,
+        schema: DECISION_TOOL.schema,
+        strict: true,
       },
-    ],
-    tools: [DECISION_TOOL],
-    tool_choice: { type: "tool", name: prompt.toolName },
-    messages: userMessages,
+    },
   });
 
   const response = await withTimeout(call, LLM_TIMEOUT_MS);
   const latencyMs = Date.now() - t0;
 
-  const toolUseBlock = response.content.find(
-    (b: any) => b.type === "tool_use" && b.name === prompt.toolName,
-  ) as any;
+  const content = response.choices[0]?.message?.content ?? "";
+  const refusal = (response.choices[0]?.message as any)?.refusal as
+    | string
+    | null
+    | undefined;
 
-  const toolInput = toolUseBlock?.input;
+  let toolInput: unknown = null;
+  if (!refusal && content) {
+    try {
+      toolInput = JSON.parse(content);
+    } catch {
+      toolInput = { _parse_error: "content was not valid JSON", content };
+    }
+  } else if (refusal) {
+    toolInput = { _refusal: refusal };
+  }
 
   const raw: RawModelOutput = {
     raw: response,
     toolInput,
-    stopReason: response.stop_reason ?? undefined,
+    stopReason: response.choices[0]?.finish_reason ?? undefined,
     usage: response.usage
       ? {
-          input_tokens: response.usage.input_tokens,
-          output_tokens: response.usage.output_tokens,
-          cache_read_input_tokens: (response.usage as any)
-            .cache_read_input_tokens,
-          cache_creation_input_tokens: (response.usage as any)
-            .cache_creation_input_tokens,
+          input_tokens: response.usage.prompt_tokens,
+          output_tokens: response.usage.completion_tokens,
+          cache_read_input_tokens: (response.usage.prompt_tokens_details as any)
+            ?.cached_tokens,
         }
       : undefined,
     latencyMs,
@@ -145,5 +152,3 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
     );
   });
 }
-
-export { haveRealKey };

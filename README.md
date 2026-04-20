@@ -19,8 +19,8 @@ npm install
 FORCE_MOCK=1 npm run dev
 # open http://localhost:3000
 
-# with real Claude
-export ANTHROPIC_API_KEY=sk-ant-...
+# with real OpenAI
+export OPENAI_API_KEY=sk-...
 npm run dev
 
 # smoke test (server must be running on :3031)
@@ -32,9 +32,9 @@ Environment variables (see `.env.example`):
 
 | var | purpose |
 |---|---|
-| `ANTHROPIC_API_KEY` | real Claude calls. If absent, mock LLM is used automatically. |
-| `ANTHROPIC_MODEL`   | override default model (`claude-haiku-4-5`). |
-| `FORCE_MOCK=1`      | force mock LLM even when a key is set. Useful for demos. |
+| `OPENAI_API_KEY` | real OpenAI calls. If absent, mock LLM is used automatically. |
+| `OPENAI_MODEL`   | override default model (`gpt-4o-mini`). |
+| `FORCE_MOCK=1`   | force mock LLM even when a key is set. Useful for demos. |
 
 ---
 
@@ -78,7 +78,7 @@ The **Acme case** from the brief ("hold off until legal reviews" … then "Yep, 
 
 ### 3. Prompt design
 
-Tool-use for structured output (Anthropic `tool_choice: {type: 'tool', name: 'emit_decision'}`) with an enum-constrained verdict field. Retry once with a corrective user turn on schema-invalid output; after the second failure, fall back to a safe deterministic verdict. System prompt is marked `cache_control: { type: 'ephemeral' }` so subsequent calls within the 5-minute window pay only output tokens.
+Structured output via OpenAI `response_format: { type: 'json_schema', strict: true }` with an enum-constrained `verdict` field. Strict mode guarantees the model emits an object matching the schema — no free-form text, no missing fields. Retry once with a corrective user turn on the rare parse failure; after the second failure, fall back to a safe deterministic verdict. System prompt reuse benefits from OpenAI's automatic prompt caching on supported models (`prompt_tokens_details.cached_tokens` is surfaced in the trace panel).
 
 The system prompt encodes the decision boundary explicitly:
 
@@ -168,7 +168,7 @@ Public deploy via Vercel's GitHub integration:
 
 1. Push this repo to GitHub.
 2. Import it on [vercel.com/new](https://vercel.com/new).
-3. Set `ANTHROPIC_API_KEY` in the Production environment. (Optionally a Preview env with `FORCE_MOCK=1` for a key-less demo URL.)
+3. Set `OPENAI_API_KEY` in the Production environment. (Optionally a Preview env with `FORCE_MOCK=1` for a key-less demo URL.)
 4. Deploy. `vercel.json` already sets `/api/decide` to `maxDuration: 30` so the 11-second LLM timeout fits comfortably.
 
 ---
@@ -186,7 +186,7 @@ lib/
   signals.ts              — deterministic signal extraction
   policy.ts               — hard refusal rules
   prompt.ts               — system + user prompt + tool schema
-  llm.ts                  — Anthropic SDK wrapper: tool-use, 11s timeout, 1-retry, mock delegation
+  llm.ts                  — OpenAI SDK wrapper: strict json_schema, 11s timeout, 1-retry, mock delegation
   mock.ts                 — deterministic mock LLM for key-less demos + failure paths
   pipeline.ts             — orchestrator with all 5 short-circuits + safe fallback
   schema.ts               — zod schemas for model output + /api/decide body

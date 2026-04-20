@@ -6,15 +6,20 @@ import type {
   PromptPayload,
 } from "./types";
 
-export const DEFAULT_MODEL =
-  process.env.ANTHROPIC_MODEL || "claude-haiku-4-5";
+export const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
-// Tool schema for structured output. The model emits exactly one call of
-// emit_decision with this input shape.
+// JSON Schema for structured output. OpenAI's `response_format: json_schema`
+// with `strict: true` guarantees the model emits an object matching this
+// shape — no free-form text, no missing fields.
+//
+// Strict-mode constraints:
+// - All listed properties must be in `required`
+// - `additionalProperties` must be false
+// - No `minLength`/`maxLength`/`minimum`/`maximum` etc. (rely on zod on
+//   the parse side for bounds checks)
 export const DECISION_TOOL = {
   name: "emit_decision" as const,
-  description: "Emit the final execution decision as structured output.",
-  input_schema: {
+  schema: {
     type: "object" as const,
     properties: {
       verdict: {
@@ -27,29 +32,26 @@ export const DECISION_TOOL = {
           "REFUSE",
         ],
         description:
-          "The final decision. REFUSE should only be used for policy/safety blocks that you (the model) have determined are necessary; deterministic policy violations are handled in code before you are called.",
+          "The final decision. Use REFUSE only when policy/safety blocks the action and no confirmation could rescue it; deterministic policy violations are already handled in code before you are called.",
       },
       rationale: {
         type: "string",
-        maxLength: 800,
         description:
           "1-3 sentences explaining the decision. Cite the specific history turn or signal that drove it.",
       },
       userMessage: {
         type: "string",
-        maxLength: 800,
         description:
-          "What to show the user: a clarifying question (CLARIFY), a confirmation prompt (CONFIRM), a post-execution note (EXECUTE_AND_NOTIFY), or a brief explanation (REFUSE). Empty or omitted for EXECUTE_SILENT.",
+          "Text to show the user: clarifying question (CLARIFY), confirmation prompt (CONFIRM), post-execution note (EXECUTE_AND_NOTIFY), brief explanation (REFUSE). Empty string for EXECUTE_SILENT.",
       },
       confidence: {
         type: "number",
-        minimum: 0,
-        maximum: 1,
         description:
-          "Self-assessed confidence in the verdict. Low confidence on irreversible actions should bias toward CONFIRM or CLARIFY.",
+          "Self-assessed confidence in the verdict, 0 to 1. Low confidence on irreversible actions should bias toward CONFIRM or CLARIFY.",
       },
     },
-    required: ["verdict", "rationale", "confidence"],
+    required: ["verdict", "rationale", "userMessage", "confidence"],
+    additionalProperties: false,
   },
 };
 
@@ -60,7 +62,7 @@ You receive:
 - Deterministic signals computed about that action
 - The relevant conversation history and any pending action awaiting resolution
 
-You output exactly one verdict via the emit_decision tool. You never execute anything yourself.
+You output exactly one decision in the required JSON shape. You never execute anything yourself.
 
 VERDICTS
 - EXECUTE_SILENT: low-risk, fully reversible, internal, user intent unambiguous, notifying the user afterward would be noise.
@@ -80,7 +82,7 @@ HARD RULES
 8. If signals.policyViolation is set, the pipeline will have already refused — you will not be called. Do not invent policy violations.
 
 OUTPUT
-Always call emit_decision exactly once. Keep rationale under 3 sentences. Keep userMessage short and directly usable as text the user would see.`;
+Emit exactly one JSON object matching the required schema. Keep rationale under 3 sentences. Keep userMessage short and directly usable as text the user would see. Set userMessage to "" for EXECUTE_SILENT.`;
 
 function fmtAge(now: number, ts: number): string {
   const mins = Math.round((now - ts) / 60_000);
@@ -123,7 +125,7 @@ export function buildUserPrompt(
     historyBlock || "(empty)",
     `</conversation_history>`,
     ``,
-    `Emit your decision via the emit_decision tool. Exactly one call. Cite the specific history turn or signal that drove the verdict.`,
+    `Emit your decision as a single JSON object matching the required schema. Cite the specific history turn or signal that drove the verdict.`,
   ].join("\n");
 }
 
